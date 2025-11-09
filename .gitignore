@@ -1,0 +1,41 @@
+# 🌱 Java & Spring Boot .gitignore
+
+# Maven build folders
+/target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# IntelliJ / VSCode / Eclipse project files
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Logs & temp files
+*.log
+logs/
+tmp/
+
+# Environment / Config files
+application-dev.properties
+application-prod.properties
+.env
+
+# Backup files
+*.bak
+*.tmp
+*.swp
+
+# Node (if frontend folder present)
+node_modules/
+dist/
+
+# Exclude generated JARs
+*.jar
+*.war
+*.zip
