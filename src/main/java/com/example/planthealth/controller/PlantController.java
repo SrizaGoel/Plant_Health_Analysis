@@ -22,7 +22,7 @@ public class PlantController {
 
     @GetMapping("/")
     public String home(Model model) {
-        return "index"; // Your upload form
+        return "index";
     }
 
     @PostMapping("/api/plant/analyze")
@@ -31,77 +31,33 @@ public class PlantController {
             @RequestParam("image") MultipartFile image,
             Model model) {
         try {
-            System.out.println("=== ULTRA SIMPLE CONTROLLER ===");
-
-            // 1. ONLY DO AI DISEASE DETECTION
-            System.out.println("🔍 Calling AI Detection...");
-            Map<String, Object> aiResult = service.analyzePlantDisease(image);
-            String disease = (String) aiResult.get("disease"); // ADD THIS LINE
-            // 2. Create plant with AI results
-            Plant plant = new Plant();
+            System.out.println(" CONTROLLER ");
+            System.out.println("Calling Detection...");
+            Map<String, Object> result = service.analyzePlantDisease(image);
+            String disease = (String) result.get("disease");
+            Plant plant = new Plant(); // default : Uploaded Plant
             plant.setName(name);
             plant.setType(type);
-            plant.setDisease((String) aiResult.get("disease"));
-            plant.setConfidence((Double) aiResult.get("confidence"));
-            plant.setHealthy((Boolean) aiResult.get("is_healthy"));
+            plant.setDisease((String) result.get("disease"));
+            plant.setConfidence((Double) result.get("confidence"));
+            plant.setHealthy((Boolean) result.get("is_healthy"));
 
-            System.out.println("✅ SUCCESS: " + plant.getDisease() + " - " + plant.getConfidence());
-            // 2. CALL DISEASE SERVICE FOR TREATMENT - NEW!
-            System.out.println("💊 Getting treatment recommendations...");
+            System.out.println("SUCCESS: " + plant.getDisease() + " - " + plant.getConfidence());
+            System.out.println("Getting treatment recommendations...");
             Map<String, Object> treatment = diseaseService.getTreatmentRecommendations(disease);
-            System.out.println("✅ Treatment data: " + treatment);
-
-            // 3. Pass to template
+            System.out.println("Treatment data: " + treatment);
             model.addAttribute("plant", plant);
             model.addAttribute("disease", plant.getDisease());
             model.addAttribute("confidence", plant.getConfidence());
             model.addAttribute("isHealthy", plant.getHealthy());
-            model.addAttribute("topPredictions", aiResult.get("top_predictions"));
-            // new
+            model.addAttribute("topPredictions", result.get("top_predictions"));
             model.addAttribute("treatment", treatment);
             model.addAttribute("severity", treatment.get("severity"));
             return "plant-result";
 
         } catch (Exception e) {
-            System.err.println("❌ CONTROLLER ERROR: " + e.getMessage());
+            System.err.println("CONTROLLER ERROR: " + e.getMessage());
             model.addAttribute("error", "AI Detection Failed: " + e.getMessage());
-            return "index";
-        }
-    }
-
-    // KEEP YOUR EXISTING METHODS, JUST ADD THIS NEW ONE FOR DIRECT AI ANALYSIS
-    @PostMapping("/analyze-plant")
-    public String analyzePlantOnly(@RequestParam("plantImage") MultipartFile file, Model model) {
-        try {
-            if (file.isEmpty()) {
-                model.addAttribute("error", "Please select an image file");
-                return "index";
-            }
-
-            Map<String, Object> aiResult = service.analyzePlantDisease(file);
-            String disease = (String) aiResult.get("disease"); // ADD THIS LINE
-            Map<String, Object> treatment = diseaseService.getTreatmentRecommendations(disease);
-
-            // Create a basic plant object for the template
-            Plant plant = new Plant();
-            plant.setDisease((String) aiResult.get("disease"));
-            plant.setConfidence((Double) aiResult.get("confidence"));
-            plant.setHealthy((Boolean) aiResult.get("is_healthy"));
-
-            model.addAttribute("plant", plant);
-            model.addAttribute("aiResult", aiResult);
-
-            // ADD SEPARATE ATTRIBUTES FOR THIS METHOD TOO
-            model.addAttribute("disease", plant.getDisease());
-            model.addAttribute("confidence", plant.getConfidence());
-            model.addAttribute("isHealthy", plant.getHealthy());
-            model.addAttribute("topPredictions", aiResult.get("top_predictions"));
-            model.addAttribute("treatment", treatment);
-            model.addAttribute("severity", treatment.get("severity"));
-            return "plant-result";
-
-        } catch (Exception e) {
-            model.addAttribute("error", "Error analyzing image: " + e.getMessage());
             return "index";
         }
     }
