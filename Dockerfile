@@ -1,52 +1,28 @@
 # ------------------------------------------------------
-# STAGE 1: Build Java + Python (TensorFlow 2.13 compatible)
+# STAGE 1: Build Java Spring Boot App
 # ------------------------------------------------------
-FROM ubuntu:22.04 AS builder
-
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Install Java 17, Python 3.10, pip, Maven + build tools
-RUN apt-get update && \
-    apt-get install -y openjdk-17-jdk python3.10 python3.10-distutils \
-                       python3.10-venv python3-pip maven build-essential && \
-    ln -sf /usr/bin/python3.10 /usr/bin/python3 && \
-    ln -sf /usr/bin/pip3 /usr/bin/pip
+FROM maven:3.9.6-eclipse-temurin-17 AS builder
 
 WORKDIR /app
 
-# Copy project files
-COPY . .
+# Copy project files and build
+COPY pom.xml .
+COPY src ./src
 
-# ✅ Upgrade pip first, then install requirements
-RUN pip install --upgrade pip
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Build Spring Boot JAR
 RUN mvn clean package -DskipTests
 
 # ------------------------------------------------------
 # STAGE 2: Run Application
 # ------------------------------------------------------
-FROM ubuntu:22.04
-
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Install Java 17 + Python 3.10 runtime
-RUN apt-get update && \
-    apt-get install -y openjdk-17-jdk python3.10 python3.10-distutils \
-                       python3.10-venv python3-pip && \
-    ln -sf /usr/bin/python3.10 /usr/bin/python3 && \
-    ln -sf /usr/bin/pip3 /usr/bin/pip && \
-    apt-get clean
+FROM eclipse-temurin:17-jdk
 
 WORKDIR /app
 
-# Copy everything from builder
-COPY --from=builder /app /app
+# Copy the built JAR from builder
+COPY --from=builder /app/target/planthealth-0.0.1-SNAPSHOT.jar /app/planthealth.jar
 
 # Expose Spring Boot port
 EXPOSE 8080
 
-# Start ML server + Spring Boot together
-CMD python3 ml_server.py & sleep 8 && java -jar target/planthealth-0.0.1-SNAPSHOT.jar
-
+# Run the Spring Boot app only (Flask runs separately)
+CMD ["java", "-jar", "/app/planthealth.jar"]
