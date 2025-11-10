@@ -1,41 +1,53 @@
-# -----------------------------
-# STAGE 1: Build Java + Python (TF 2.13.0 compatible)
-# -----------------------------
-FROM eclipse-temurin:17-jdk AS builder
+# ------------------------------------------------------
+# STAGE 1: Build Java + Python (TensorFlow 2.13 compatible)
+# ------------------------------------------------------
+FROM ubuntu:22.04 AS builder
 
-WORKDIR /app
+# Prevent interactive prompts during install
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Install Python 3.10 (compatible with TF 2.13.0)
+# Install core tools: Java 17, Python 3.10, pip, Maven, and build tools
 RUN apt-get update && \
-    apt-get install -y software-properties-common && \
-    add-apt-repository ppa:deadsnakes/ppa && \
-    apt-get update && \
-    apt-get install -y python3.10 python3.10-venv python3.10-distutils python3-pip build-essential && \
+    apt-get install -y openjdk-17-jdk python3.10 python3.10-distutils \
+                       python3.10-venv python3-pip maven build-essential && \
     ln -sf /usr/bin/python3.10 /usr/bin/python3 && \
     ln -sf /usr/bin/pip3 /usr/bin/pip
 
-# Copy all project files
+# Set work directory
+WORKDIR /app
+
+# Copy all project files into the container
 COPY . .
 
-# Install Python dependencies (PEP 668 safe)
+# Install Python dependencies (PEP 668 override)
 RUN pip install --no-cache-dir --break-system-packages -r requirements.txt
 
 # Build the Spring Boot JAR file
 RUN chmod +x mvnw || true
 RUN ./mvnw clean package -DskipTests || mvn clean package -DskipTests
 
-# -----------------------------
+# ------------------------------------------------------
 # STAGE 2: Run Application
-# -----------------------------
-FROM eclipse-temurin:17-jdk
+# ------------------------------------------------------
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install Java 17 and Python 3.10 runtime
+RUN apt-get update && \
+    apt-get install -y openjdk-17-jdk python3.10 python3.10-distutils \
+                       python3.10-venv python3-pip && \
+    ln -sf /usr/bin/python3.10 /usr/bin/python3 && \
+    ln -sf /usr/bin/pip3 /usr/bin/pip && \
+    apt-get clean
 
 WORKDIR /app
 
-# Copy everything from builder
+# Copy built app and ML files from builder stage
 COPY --from=builder /app /app
 
-# Expose Spring Boot port
+# Expose the Spring Boot port
 EXPOSE 8080
 
-# Start ML server and Spring Boot together
+# Start ML server + Spring Boot together
 CMD python3 ml_server.py & java -jar target/planthealth-0.0.1-SNAPSHOT.jar
