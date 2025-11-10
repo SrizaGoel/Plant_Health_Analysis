@@ -1,7 +1,7 @@
 # -----------------------------
 # STAGE 1: Build Java App
 # -----------------------------
-FROM openjdk:17-jdk-slim AS builder
+FROM eclipse-temurin:17-jdk AS builder
 
 WORKDIR /app
 
