@@ -48,4 +48,5 @@ COPY --from=builder /app /app
 EXPOSE 8080
 
 # Start ML server + Spring Boot together
-CMD python3 ml_server.py & java -jar target/planthealth-0.0.1-SNAPSHOT.jar
+CMD python3 ml_server.py & sleep 8 && java -jar target/planthealth-0.0.1-SNAPSHOT.jar
+
