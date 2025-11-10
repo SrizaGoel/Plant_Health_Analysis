@@ -9,7 +9,7 @@ flask-cors==4.0.0
 numpy
 --only-binary=:all:
 
-pillow==9.5.0
+pillow==10.4.0
 
 # --- TensorFlow (from Google wheel repo) ---
 --extra-index-url https://storage.googleapis.com/tensorflow/linux/cp311
