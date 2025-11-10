@@ -3,28 +3,25 @@
 # ------------------------------------------------------
 FROM ubuntu:22.04 AS builder
 
-# Prevent interactive prompts during install
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install core tools: Java 17, Python 3.10, pip, Maven, and build tools
+# Install Java 17, Python 3.10, pip, Maven, and build tools
 RUN apt-get update && \
     apt-get install -y openjdk-17-jdk python3.10 python3.10-distutils \
                        python3.10-venv python3-pip maven build-essential && \
     ln -sf /usr/bin/python3.10 /usr/bin/python3 && \
     ln -sf /usr/bin/pip3 /usr/bin/pip
 
-# Set work directory
 WORKDIR /app
 
-# Copy all project files into the container
+# Copy project files
 COPY . .
 
-# Install Python dependencies (PEP 668 override)
+# Install Python dependencies (TF 2.13 works here)
 RUN pip install --no-cache-dir --break-system-packages -r requirements.txt
 
-# Build the Spring Boot JAR file
-RUN chmod +x mvnw || true
-RUN ./mvnw clean package -DskipTests || mvn clean package -DskipTests
+# Build Spring Boot JAR (only mvn, no mvnw)
+RUN mvn clean package -DskipTests
 
 # ------------------------------------------------------
 # STAGE 2: Run Application
@@ -33,7 +30,7 @@ FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install Java 17 and Python 3.10 runtime
+# Install Java 17 and Python 3.10
 RUN apt-get update && \
     apt-get install -y openjdk-17-jdk python3.10 python3.10-distutils \
                        python3.10-venv python3-pip && \
@@ -43,7 +40,7 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-# Copy built app and ML files from builder stage
+# Copy everything from builder
 COPY --from=builder /app /app
 
 # Expose the Spring Boot port
