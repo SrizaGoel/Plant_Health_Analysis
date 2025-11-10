@@ -1,5 +1,14 @@
+# flask==2.3.3
+# flask-cors==4.0.0
+# tensorflow==2.13.0
+# pillow==10.0.0
+# numpy==1.24.3
 flask==2.3.3
 flask-cors==4.0.0
-tensorflow==2.13.0
 pillow==10.0.0
 numpy==1.24.3
+
+# --- TensorFlow 2.13 manual install ---
+# Use compatible wheel from 3.11 build for Linux
+--extra-index-url https://storage.googleapis.com/tensorflow/linux/cp311
+tensorflow==2.13.0
