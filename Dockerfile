@@ -20,7 +20,8 @@ RUN ./mvnw clean package -DskipTests || mvn clean package -DskipTests
 # -----------------------------
 # STAGE 2: Run App
 # -----------------------------
-FROM openjdk:17-jdk-slim
+#FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jdk
 
 WORKDIR /app
 
