@@ -13,7 +13,8 @@ import java.util.Map;
 @Service
 public class PlantService {
 
-    private final String mlApiUrl = "http://127.0.0.1:5000/predict";
+    // private final String mlApiUrl = "http://127.0.0.1:5000/predict";
+    private final String mlApiUrl = "https://plant-health-analysis-ml.onrender.com";
 
     public Map<String, Object> analyzePlantDisease(MultipartFile file) {
         try {
