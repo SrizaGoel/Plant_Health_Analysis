@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: planthealth-ml
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python3 ml_server.py
+    envVars:
+      - key: PORT
+        value: 5000
