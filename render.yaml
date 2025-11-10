@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: planthealth
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+  
