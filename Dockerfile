@@ -5,7 +5,7 @@ FROM ubuntu:22.04 AS builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install Java 17, Python 3.10, pip, Maven, and build tools
+# Install Java 17, Python 3.10, pip, Maven + build tools
 RUN apt-get update && \
     apt-get install -y openjdk-17-jdk python3.10 python3.10-distutils \
                        python3.10-venv python3-pip maven build-essential && \
@@ -17,10 +17,11 @@ WORKDIR /app
 # Copy project files
 COPY . .
 
-# Install Python dependencies (TF 2.13 works here)
-RUN pip install --no-cache-dir --break-system-packages -r requirements.txt
+# ✅ Upgrade pip first, then install requirements
+RUN pip install --upgrade pip
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Build Spring Boot JAR (only mvn, no mvnw)
+# Build Spring Boot JAR
 RUN mvn clean package -DskipTests
 
 # ------------------------------------------------------
@@ -30,7 +31,7 @@ FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install Java 17 and Python 3.10
+# Install Java 17 + Python 3.10 runtime
 RUN apt-get update && \
     apt-get install -y openjdk-17-jdk python3.10 python3.10-distutils \
                        python3.10-venv python3-pip && \
@@ -43,7 +44,7 @@ WORKDIR /app
 # Copy everything from builder
 COPY --from=builder /app /app
 
-# Expose the Spring Boot port
+# Expose Spring Boot port
 EXPOSE 8080
 
 # Start ML server + Spring Boot together
